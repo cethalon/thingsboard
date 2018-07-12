@@ -108,12 +108,12 @@ public class MailPlugin extends AbstractPlugin<MailPluginConfiguration> implemen
         MimeMessage mailMsg = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mailMsg, "UTF-8");
         helper.setFrom(msg.getFrom());
-        helper.setTo(msg.getTo().split("\\s*,\\s*"));
+        helper.setTo(msg.getTo());
         if (!StringUtils.isEmpty(msg.getCc())) {
-            helper.setCc(msg.getCc().split("\\s*,\\s*"));
+            helper.setCc(msg.getCc());
         }
         if (!StringUtils.isEmpty(msg.getBcc())) {
-            helper.setBcc(msg.getBcc().split("\\s*,\\s*"));
+            helper.setBcc(msg.getBcc());
         }
         helper.setSubject(msg.getSubject());
         helper.setText(msg.getBody(),true);
