@@ -51,7 +51,7 @@ import react from 'ngreact';
 import '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 import 'ngFlowchart/dist/ngFlowchart';
 
-import thingsboardLocales from './locale/locale.constant';
+import thingsboardTranslateHandler from './locale/translate-handler';
 import thingsboardLogin from './login';
 import thingsboardDialogs from './components/datakey-config-dialog.controller';
 import thingsboardMenu from './services/menu.service';
@@ -67,6 +67,7 @@ import thingsboardClipboard from './services/clipboard.service';
 import thingsboardHome from './layout';
 import thingsboardApiLogin from './api/login.service';
 import thingsboardApiDevice from './api/device.service';
+import thingsboardApiEntityView from './api/entity-view.service';
 import thingsboardApiUser from './api/user.service';
 import thingsboardApiEntityRelation from './api/entity-relation.service';
 import thingsboardApiAsset from './api/asset.service';
@@ -117,7 +118,7 @@ angular.module('thingsboard', [
     react.name,
     'flow',
     'flowchart',
-    thingsboardLocales,
+    thingsboardTranslateHandler,
     thingsboardLogin,
     thingsboardDialogs,
     thingsboardMenu,
@@ -133,6 +134,7 @@ angular.module('thingsboard', [
     thingsboardHome,
     thingsboardApiLogin,
     thingsboardApiDevice,
+    thingsboardApiEntityView,
     thingsboardApiUser,
     thingsboardApiEntityRelation,
     thingsboardApiAsset,

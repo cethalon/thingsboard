@@ -51,11 +51,13 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -69,6 +71,7 @@ import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -138,6 +141,15 @@ public abstract class BaseController {
 
     @Autowired
     protected DeviceStateService deviceStateService;
+
+    @Autowired
+    protected EntityViewService entityViewService;
+
+    @Autowired
+    protected TelemetrySubscriptionService tsSubService;
+
+    @Autowired
+    protected AttributesService attributesService;
 
     @ExceptionHandler(ThingsboardException.class)
     public void handleThingsboardException(ThingsboardException ex, HttpServletResponse response) {
@@ -313,6 +325,9 @@ public abstract class BaseController {
                 case USER:
                     checkUserId(new UserId(entityId.getId()));
                     return;
+                case ENTITY_VIEW:
+                    checkEntityViewId(new EntityViewId(entityId.getId()));
+                    return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
             }
@@ -337,6 +352,25 @@ public abstract class BaseController {
         checkTenantId(device.getTenantId());
         if (device.getCustomerId() != null && !device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
             checkCustomerId(device.getCustomerId());
+        }
+    }
+
+    protected EntityView checkEntityViewId(EntityViewId entityViewId) throws ThingsboardException {
+        try {
+            validateId(entityViewId, "Incorrect entityViewId " + entityViewId);
+            EntityView entityView = entityViewService.findEntityViewById(entityViewId);
+            checkEntityView(entityView);
+            return entityView;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkEntityView(EntityView entityView) throws ThingsboardException {
+        checkNotNull(entityView);
+        checkTenantId(entityView.getTenantId());
+        if (entityView.getCustomerId() != null && !entityView.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(entityView.getCustomerId());
         }
     }
 
@@ -529,18 +563,16 @@ public abstract class BaseController {
         return baseUrl;
     }
 
-    protected <I extends UUIDBased & EntityId> I emptyId(EntityType entityType) {
+    protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I)EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
 
-    protected <E extends BaseData<I> & HasName,
-            I extends UUIDBased & EntityId> void logEntityAction(I entityId, E entity, CustomerId customerId,
+    protected <E extends HasName, I extends EntityId> void logEntityAction(I entityId, E entity, CustomerId customerId,
                                                                  ActionType actionType, Exception e, Object... additionalInfo) throws ThingsboardException {
         logEntityAction(getCurrentUser(), entityId, entity, customerId, actionType, e, additionalInfo);
     }
 
-    protected <E extends BaseData<I> & HasName,
-            I extends UUIDBased & EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
+    protected <E extends HasName, I extends EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
                                                                  ActionType actionType, Exception e, Object... additionalInfo) throws ThingsboardException {
         if (customerId == null || customerId.isNullUid()) {
             customerId = user.getCustomerId();
@@ -556,8 +588,7 @@ public abstract class BaseController {
         return error != null ? (Exception.class.isInstance(error) ? (Exception) error : new Exception(error)) : null;
     }
 
-    private <E extends BaseData<I> & HasName,
-            I extends UUIDBased & EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, User user, CustomerId customerId,
+    private <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, User user, CustomerId customerId,
                                                                          ActionType actionType, Object... additionalInfo) {
         String msgType = null;
         switch (actionType) {
