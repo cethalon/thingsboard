@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2018 The Thingsboard Authors
+ * Copyright © 2016-2019 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,18 +37,22 @@ import java.util.concurrent.ExecutionException;
 public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.ScriptEngine {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    private final JsSandboxService sandboxService;
+    private final JsInvokeService sandboxService;
 
     private final UUID scriptId;
     private final EntityId entityId;
 
-    public RuleNodeJsScriptEngine(JsSandboxService sandboxService, EntityId entityId, String script, String... argNames) {
+    public RuleNodeJsScriptEngine(JsInvokeService sandboxService, EntityId entityId, String script, String... argNames) {
         this.sandboxService = sandboxService;
         this.entityId = entityId;
         try {
             this.scriptId = this.sandboxService.eval(JsScriptType.RULE_NODE_SCRIPT, script, argNames).get();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Can't compile script: " + e.getMessage(), e);
+            Throwable t = e;
+            if (e instanceof ExecutionException) {
+                t = e.getCause();
+            }
+            throw new IllegalArgumentException("Can't compile script: " + t.getMessage(), t);
         }
     }
 
@@ -165,11 +169,13 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     private JsonNode executeScript(TbMsg msg) throws ScriptException {
         try {
             String[] inArgs = prepareArgs(msg);
-            String eval = sandboxService.invokeFunction(this.scriptId, this.entityId, inArgs[0], inArgs[1], inArgs[2]).get().toString();
+            String eval = sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2]).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {
                 throw (ScriptException)e.getCause();
+            } else if (e.getCause() instanceof RuntimeException) {
+                throw new ScriptException(e.getCause().getMessage());
             } else {
                 throw new ScriptException(e);
             }
@@ -179,6 +185,6 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     }
 
     public void destroy() {
-        sandboxService.release(this.scriptId, this.entityId);
+        sandboxService.release(this.scriptId);
     }
 }

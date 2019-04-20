@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2018 The Thingsboard Authors
+ * Copyright © 2016-2019 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import './home.scss';
 
 import uiRouter from 'angular-ui-router';
 import ngSanitize from 'angular-sanitize';
-import FBAngular from 'angular-fullscreen';
 import 'angular-breadcrumb';
 
 import thingsboardMenu from '../services/menu.service';
@@ -28,6 +27,7 @@ import thingsboardApiUser from '../api/user.service';
 import thingsboardNoAnimate from '../components/no-animate.directive';
 import thingsboardOnFinishRender from '../components/finish-render.directive';
 import thingsboardSideMenu from '../components/side-menu.directive';
+import thingsboardNavTree from '../components/nav-tree.directive';
 import thingsboardDashboardAutocomplete from '../components/dashboard-autocomplete.directive';
 import thingsboardKvMap from '../components/kv-map.directive';
 import thingsboardJsonObjectEdit from '../components/json-object-edit.directive';
@@ -63,7 +63,6 @@ import BreadcrumbIcon from './breadcrumb-icon.filter';
 export default angular.module('thingsboard.home', [
     uiRouter,
     ngSanitize,
-    FBAngular.name,
     'ncy-angular-breadcrumb',
     thingsboardMenu,
     thingsboardHomeLinks,
@@ -91,6 +90,7 @@ export default angular.module('thingsboard.home', [
     thingsboardNoAnimate,
     thingsboardOnFinishRender,
     thingsboardSideMenu,
+    thingsboardNavTree,
     thingsboardDashboardAutocomplete,
     thingsboardKvMap,
     thingsboardJsonObjectEdit,

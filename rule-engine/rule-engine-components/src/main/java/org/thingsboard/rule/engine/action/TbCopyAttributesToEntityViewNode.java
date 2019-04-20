@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2018 The Thingsboard Authors
+ * Copyright © 2016-2019 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,11 +88,10 @@ public class TbCopyAttributesToEntityViewNode implements TbNode {
                                 if ((endTime != 0 && endTime > now && startTime < now) || (endTime == 0 && startTime < now)) {
                                     if (DataConstants.ATTRIBUTES_UPDATED.equals(msg.getType()) ||
                                             SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msg.getType())) {
-                                        Set<AttributeKvEntry> attributes =
-                                                JsonConverter.convertToAttributes(new JsonParser().parse(msg.getData())).getAttributes();
+                                        Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(msg.getData()));
                                         List<AttributeKvEntry> filteredAttributes =
                                                 attributes.stream().filter(attr -> attributeContainsInEntityView(scope, attr.getKey(), entityView)).collect(Collectors.toList());
-                                        ctx.getTelemetryService().saveAndNotify(entityView.getId(), scope, filteredAttributes,
+                                        ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), entityView.getId(), scope, filteredAttributes,
                                                 new FutureCallback<Void>() {
                                                     @Override
                                                     public void onSuccess(@Nullable Void result) {
@@ -117,7 +116,7 @@ public class TbCopyAttributesToEntityViewNode implements TbNode {
                                         List<String> filteredAttributes =
                                                 attributes.stream().filter(attr -> attributeContainsInEntityView(scope, attr, entityView)).collect(Collectors.toList());
                                         if (filteredAttributes != null && !filteredAttributes.isEmpty()) {
-                                            ctx.getAttributesService().removeAll(entityView.getId(), scope, filteredAttributes);
+                                            ctx.getAttributesService().removeAll(ctx.getTenantId(), entityView.getId(), scope, filteredAttributes);
                                             transformAndTellNext(ctx, msg, entityView);
                                         }
                                     }

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2018 The Thingsboard Authors
+ * Copyright © 2016-2019 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class TbMsgGeneratorNodeConfiguration implements NodeConfiguration<TbMsgG
         configuration.setPeriodInSeconds(1);
         configuration.setJsScript("var msg = { temp: 42, humidity: 77 };\n" +
                 "var metadata = { data: 40 };\n" +
-                "var msgType = \"DebugMsg\";\n\n" +
+                "var msgType = \"POST_TELEMETRY_REQUEST\";\n\n" +
                 "return { msg: msg, metadata: metadata, msgType: msgType };");
         return configuration;
     }
